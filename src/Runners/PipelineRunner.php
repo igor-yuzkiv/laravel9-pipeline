@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Pipeline\Runners;
 
-use Pipeline\Contracts\Action;
 use Pipeline\Contracts\Response;
 use Pipeline\Contracts\Runnable;
 use Pipeline\Enums\ResponseStatusCode;
@@ -16,7 +15,6 @@ use Pipeline\Pipeline;
  */
 class PipelineRunner implements Runnable
 {
-
     /**
      * @var Response|null
      */
@@ -35,35 +33,21 @@ class PipelineRunner implements Runnable
         }
     }
 
-    /**
-     * @return void
-     */
+
     public function run(): void
     {
-        /**
-         * @var Action $action
-         */
         foreach ($this->pipeline as $action) {
+            $runner = new ActionRunner($action);
+
             if (is_a($this->response, Response::class)) {
-                $action->withResponse($this->response);
+                $runner->withResponse($this->response);
             }
 
-            $this->response = $this->runAction($action);
-
-            dump($this->response->toArray());
+            $this->response = $runner->run();
 
             if ($this->response->getStatusCode() === ResponseStatusCode::BREAK) {
                 break;
             }
         }
-    }
-
-    /**
-     * @param Action $action
-     * @return Response
-     */
-    private function runAction(Action $action): Response
-    {
-        return (new ActionRunner($action))->run();
     }
 }

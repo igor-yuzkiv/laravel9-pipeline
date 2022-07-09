@@ -13,20 +13,38 @@ use Pipeline\Enums\ResponseStatusCode;
 class ActionResponse implements Response
 {
     /**
+     * @var ResponseStatusCode
+     */
+    private ResponseStatusCode $statusCode;
+
+    /**
+     * @var array
+     */
+    private array $response;
+
+    /**
      * @var string
      */
     private string $message;
 
     /**
      * @param ResponseStatusCode $statusCode
-     * @param array $response
+     * @return $this
      */
-    public function __construct(
-        private readonly ResponseStatusCode $statusCode,
-        private readonly array              $response
-    )
+    public function withStatusCode(ResponseStatusCode $statusCode): self
     {
+        $this->statusCode = $statusCode;
+        return $this;
+    }
 
+    /**
+     * @param array $response
+     * @return $this
+     */
+    public function withResponse(array $response): self
+    {
+        $this->response = $response;
+        return $this;
     }
 
     /**
@@ -69,7 +87,7 @@ class ActionResponse implements Response
     public function toArray(): array
     {
         return [
-            'status'   => $this->statusCode->name,
+            'status'   => $this->statusCode,
             'response' => $this->response,
         ];
     }

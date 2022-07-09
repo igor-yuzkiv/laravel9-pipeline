@@ -55,6 +55,7 @@ class Action1 implements Action
      */
     public function run(): Response
     {
+        dump(static::class);
         throw new ActionFailedException("Action 1 exception!");
     }
 

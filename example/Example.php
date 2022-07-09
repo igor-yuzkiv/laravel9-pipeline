@@ -4,6 +4,7 @@ namespace Example;
 
 use Example\Actions\Action1;
 use Example\Actions\Action2;
+use Example\Actions\Action3;
 use Pipeline\Pipeline;
 use Pipeline\Runners\PipelineRunner;
 
@@ -15,9 +16,8 @@ class Example
 
         $pipeline
             ->addAction((new Action1())->withArguments(test: 1))
-            ->addAction(new Action2());
-
-        $runner = new PipelineRunner($pipeline);
-        $runner->run();
+            ->addAction(new Action2())
+            ->addAction(new Action3())
+            ->run();
     }
 }

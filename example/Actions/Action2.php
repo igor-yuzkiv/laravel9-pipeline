@@ -52,13 +52,15 @@ class Action2 implements Action
      */
     public function run()
     {
-        $this->outputResponse = new ActionResponse(
-            ResponseStatusCode::SUCCESS, [
+        dump(static::class);
+        dump($this->inputResponse);
+        $this->outputResponse = (new ActionResponse())
+            ->withStatusCode(ResponseStatusCode::SUCCESS)
+            ->withResponse([
                 'inputResponse' => $this->inputResponse ?? null,
                 'arguments'     => $this->arguments ?? null,
-            ]
-        );
-        $this->outputResponse->withMessage(static::class);
+            ])
+            ->withMessage(static::class);
     }
 
     /**

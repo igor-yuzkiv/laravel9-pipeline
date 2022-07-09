@@ -7,7 +7,7 @@ namespace Pipeline\Contracts;
 /**
  *
  */
-interface Action
+interface Action extends Runnable
 {
     /**
      * @param Response $response
@@ -20,11 +20,6 @@ interface Action
      * @return $this
      */
     public function withArguments(mixed ...$namedArguments): self;
-
-    /**
-     * @return mixed|void
-     */
-    public function run();
 
     /**
      * @return Response
