@@ -1,0 +1,21 @@
+{
+    "name": "igor-yuzkiv/laravel9-pipeline",
+    "version": "0.0.1",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Igor Yuzkiv"
+        }
+    ],
+    "require": {
+        "php": "^8.1.0",
+        "laravel/framework": "^9.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Workflow\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
