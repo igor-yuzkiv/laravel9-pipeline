@@ -109,6 +109,7 @@ class PipelineRunner implements Runnable
     private function runBreakAction(): void
     {
         $action = $this->pipeline->getBreakAction();
+
         if (!ValidateAction::isValid($action)) {
             return;
         }

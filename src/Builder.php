@@ -116,6 +116,8 @@ final class Builder
 
     /**
      * @return void
+     * @throws Exceptions\PipelineEmptyException
+     * @throws InvalidPipelineActionException
      */
     public function run(): void
     {
