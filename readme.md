@@ -48,7 +48,13 @@ PipelineFacade::buildPipeline()
         dump(3);
     })
     ->addAction(new StateLassAction())
-    ->addAction(new PipeLineTestAction())
+    ->addAction(
+        new PipeLineTestAction()
+            ->withArguments(
+                arg1: "test",
+                arg2: "test2"
+            )
+    )
     ->finished(fn() => dump("done"))
     ->onBreak(fn() => dump("break"))
     ->run();
