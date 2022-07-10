@@ -27,7 +27,7 @@ class PipelineRunner implements Runnable
      * @throws PipelineEmptyException
      */
     public function __construct(
-        private Pipeline $pipeline
+        private readonly Pipeline $pipeline
     )
     {
         if ($this->pipeline->isEmpty()) {

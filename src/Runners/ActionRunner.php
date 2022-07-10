@@ -16,11 +16,6 @@ use Pipeline\Exceptions\InvalidPipelineActionException;
 class ActionRunner implements Runnable
 {
     /**
-     * @var Action|Runnable|callable|QueueableClosure
-     */
-    private mixed $action;
-
-    /**
      * @var Response
      */
     private Response $outputResponse;
@@ -31,11 +26,12 @@ class ActionRunner implements Runnable
     private ?Response $inputResponse = null;
 
     /**
-     * @param $action
+     * @param Action|Runnable|callable|QueueableClosure $action
      */
-    public function __construct($action)
+    public function __construct(
+        private readonly mixed $action
+    )
     {
-        $this->action = $action;
         $this->outputResponse = new ActionResponse();
     }
 

@@ -27,7 +27,7 @@ final class Pipeline implements \IteratorAggregate
     /**
      * @var Action|Runnable|callable|QueueableClosure|null
      */
-    private $breakAction = null;
+    private mixed $breakAction = null;
 
     /**
      * @return Runnable[]|QueueableClosure[]|Action[]|callable[]

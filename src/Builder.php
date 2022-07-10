@@ -72,7 +72,10 @@ final class Builder
      */
     public function breakIfFailed(): self
     {
-        $this->addAction(new IfFailedBreak());
+        $this->addAction(
+            new IfFailedBreak()
+        );
+
         return $this;
     }
 
@@ -129,7 +132,8 @@ final class Builder
         $pipeline = new Pipeline();
         foreach ($this->pipeline->getActions() as $action) {
             if (is_callable($action)) {
-                $action = new QueueableClosure($action);            }
+                $action = new QueueableClosure($action);
+            }
             $this->addAction($action);
         }
         return dispatch(new PipelineJob($pipeline));
