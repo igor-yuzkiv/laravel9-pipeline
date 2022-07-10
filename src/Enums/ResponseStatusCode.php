@@ -2,9 +2,6 @@
 
 namespace Pipeline\Enums;
 
-/**
- *
- */
 enum ResponseStatusCode
 {
     case SUCCESS;

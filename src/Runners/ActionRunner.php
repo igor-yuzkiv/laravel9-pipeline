@@ -1,21 +1,25 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Pipeline\Runners;
 
+use Pipeline\Contracts\Runnable;
+use Pipeline\Job\QueueableClosure;
 use Pipeline\ActionResponse;
 use Pipeline\Contracts\Action;
 use Pipeline\Contracts\Response;
-use Pipeline\Contracts\Runnable;
 use Pipeline\Enums\ResponseStatusCode;
-use Pipeline\Exceptions\InvalidPipelineAction;
+use Pipeline\Exceptions\InvalidPipelineActionException;
 
 /**
  *
  */
 class ActionRunner implements Runnable
 {
+    /**
+     * @var Action|Runnable|callable|QueueableClosure
+     */
+    private mixed $action;
+
     /**
      * @var Response
      */
@@ -27,13 +31,21 @@ class ActionRunner implements Runnable
     private ?Response $inputResponse = null;
 
     /**
-     * @param Action|Runnable $action
+     * @param $action
      */
-    public function __construct(
-        private readonly Action|Runnable $action
-    )
+    public function __construct($action)
     {
+        $this->action = $action;
         $this->outputResponse = new ActionResponse();
+    }
+
+    /**
+     * @param $action
+     * @return ActionRunner
+     */
+    public static function of($action): self
+    {
+        return new self($action);
     }
 
     /**
@@ -48,16 +60,24 @@ class ActionRunner implements Runnable
 
     /**
      * @return Response
-     * @throws InvalidPipelineAction
+     * @throws InvalidPipelineActionException
      */
     public function run(): Response
     {
-        if ($this->isPipelineAction()) {
-            $this->runPipelineAction();
-        } else if ($this->isStatelessAction()) {
-            $this->runStatelessAction();
-        } else {
-            throw new InvalidPipelineAction();
+        try {
+            if ($this->isPipelineAction()) {
+                $this->runPipelineAction();
+            } else if ($this->isStatelessAction()) {
+                $this->runStatelessAction();
+            } else if ($this->isClosureAction()) {
+                $this->runClosureAction();
+            } else {
+                throw new InvalidPipelineActionException();
+            }
+        } catch (InvalidPipelineActionException $exception) {
+            throw  $exception;
+        } catch (\Exception $exception) {
+            $this->setFailedResponse($exception->getMessage());
         }
 
         return $this->outputResponse;
@@ -80,21 +100,24 @@ class ActionRunner implements Runnable
     }
 
     /**
+     * @return bool
+     */
+    private function isClosureAction(): bool
+    {
+        return is_a($this->action, QueueableClosure::class) || is_callable($this->action);
+    }
+
+    /**
      * @return void
      */
     private function runPipelineAction(): void
     {
-        try {
-            if (!empty($this->inputResponse)) {
-                $this->action->withResponse($this->inputResponse);
-            }
-
-            $this->action->run();
-
-            $this->outputResponse = $this->action->getResponse();
-        } catch (\Exception $exception) {
-            $this->setFailedResponse($exception->getMessage());
+        if (!empty($this->inputResponse)) {
+            $this->action->withResponse($this->inputResponse);
         }
+
+        $this->action->run();
+        $this->outputResponse = $this->action->getResponse();
     }
 
     /**
@@ -102,12 +125,30 @@ class ActionRunner implements Runnable
      */
     private function runStatelessAction(): void
     {
-        try {
-            $response = $this->action->run();
+        $response = $this->action->run();
+        $this->outputResponse->withStatusCode(ResponseStatusCode::SUCCESS);
+        $this->outputResponse->withResponse(['stateless' => $response ?? null]);
+    }
+
+    /**
+     * @return void
+     */
+    private function runClosureAction(): void
+    {
+        if (is_a($this->action, QueueableClosure::class)) {
+            $response = $this->action->handle();
+        } else {
+            $response = call_user_func($this->action, $this->inputResponse);
+        }
+
+
+        if (is_a($response, Response::class)) {
+            $this->outputResponse = $response;
+        } else {
             $this->outputResponse->withStatusCode(ResponseStatusCode::SUCCESS);
-            $this->outputResponse->withResponse(['stateless' => $response ?? null]);
-        } catch (\Exception $exception) {
-            $this->setFailedResponse($exception->getMessage());
+            if (is_array($response)) {
+                $this->outputResponse->withResponse($response);
+            }
         }
     }
 
@@ -117,7 +158,9 @@ class ActionRunner implements Runnable
      */
     private function setFailedResponse(string $message): void
     {
-        $this->outputResponse->withStatusCode(ResponseStatusCode::FAILED);
-        $this->outputResponse->withMessage($message);
+        $this->outputResponse
+            ->withStatusCode(ResponseStatusCode::FAILED)
+            ->withMessage($message)
+            ->withResponse([]);
     }
 }

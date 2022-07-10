@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Pipeline;
 
 use Pipeline\Contracts\Response;
@@ -28,6 +26,31 @@ class ActionResponse implements Response
     private string $message;
 
     /**
+     * @return static
+     */
+    public static function break(): self
+    {
+        $self = new self();
+        $self->withStatusCode(ResponseStatusCode::BREAK);
+        return $self;
+    }
+
+    /**
+     * @param string $message
+     * @param array $response
+     * @return static
+     */
+    public static function failed(string $message, array $response = []): self
+    {
+        $self = new self();
+        $self->withStatusCode(ResponseStatusCode::FAILED)
+            ->withMessage($message)
+            ->withResponse($response);
+
+        return $self;
+    }
+
+    /**
      * @param ResponseStatusCode $statusCode
      * @return $this
      */
@@ -39,7 +62,7 @@ class ActionResponse implements Response
 
     /**
      * @param array $response
-     * @return $this
+     * @return Response
      */
     public function withResponse(array $response): self
     {

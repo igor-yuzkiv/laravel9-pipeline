@@ -1,47 +1,48 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Pipeline;
 
 use Pipeline\Contracts\Runnable;
-use Pipeline\Runners\PipelineRunner;
-use Traversable;
 use Pipeline\Contracts\Action;
+use Pipeline\Exceptions\InvalidPipelineActionException;
+use Pipeline\Job\QueueableClosure;
+use Traversable;
 
 /**
  *
  */
-class Pipeline implements \IteratorAggregate
+final class Pipeline implements \IteratorAggregate
 {
     /**
-     * @var array<Action|Runnable>
+     * @var Runnable[]|QueueableClosure[]|Action[]|callable[]
      */
-    private array $actions;
+    public array $actions = [];
 
     /**
-     *
+     * @var Action|Runnable|\Closure|QueueableClosure|null
      */
-    public function __construct()
+    private mixed $finishedAction = null;
+
+    /**
+     * @var Action|Runnable|callable|QueueableClosure|null
+     */
+    private $breakAction = null;
+
+    /**
+     * @return Runnable[]|QueueableClosure[]|Action[]|callable[]
+     */
+    public function getActions(): array
     {
-        $this->actions = [];
+        return $this->actions;
     }
 
     /**
-     * @param Runnable|Action $action
-     * @return $this
+     * @return bool
      */
-    public function addAction(Runnable|Action $action): self
+    public function isEmpty(): bool
     {
-        $this->actions[] = $action;
-        return $this;
-    }
-
-
-    public function run(): void
-    {
-        $runner = new PipelineRunner($this);
-        $runner->run();
+        return (empty($this->actions));
     }
 
     /**
@@ -53,10 +54,38 @@ class Pipeline implements \IteratorAggregate
     }
 
     /**
-     * @return bool
+     * @return \Closure|mixed|Action|Runnable|QueueableClosure|null
      */
-    public function isEmpty(): bool
+    public function getFinishedAction(): mixed
     {
-        return (empty($this->actions));
+        return $this->finishedAction;
+    }
+
+    /**
+     * @param $finishedAction
+     * @return void
+     * @throws InvalidPipelineActionException
+     */
+    public function setFinishedAction($finishedAction): void
+    {
+        ValidateAction::throwIfInvalid($finishedAction);
+        $this->finishedAction = $finishedAction;
+    }
+
+    /**
+     * @return callable|Action|Runnable|QueueableClosure|null
+     */
+    public function getBreakAction(): mixed
+    {
+        return $this->breakAction;
+    }
+
+    /**
+     * @param null $breakAction
+     */
+    public function setBreakAction($breakAction): self
+    {
+        $this->breakAction = $breakAction;
+        return $this;
     }
 }
